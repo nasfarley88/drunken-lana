@@ -62,7 +62,7 @@ Window::Window()
   m_refActionGroup->add(Gtk::Action::create("PlaybackMenu", "Playback"));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPrevious",
 					    Gtk::Stock::MEDIA_PREVIOUS),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+			sigc::mem_fun(*this, &Window::on_menu_previous));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaRewind",
 					    Gtk::Stock::MEDIA_REWIND),
 			sigc::mem_fun(*this, &Window::on_menu_rewind));
@@ -239,6 +239,11 @@ void Window::on_menu_file_open() {
 void Window::on_menu_file_new_generic()
 {
    std::cout << "A File|New menu item was selected." << std::endl;
+}
+
+void Window::on_menu_previous() {
+  libvlc_media_player_set_time(mp, 0);
+  libvlc_media_player_play(mp);
 }
 
 void Window::on_menu_rewind() {
