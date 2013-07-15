@@ -77,7 +77,7 @@ Window::Window()
 			sigc::mem_fun(*this, &Window::on_menu_stop));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaForward",
 					    Gtk::Stock::MEDIA_FORWARD),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+			sigc::mem_fun(*this, &Window::on_menu_forward));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
 					    Gtk::Stock::MEDIA_NEXT),
 			sigc::mem_fun(*this, &Window::on_menu_others));
@@ -242,6 +242,7 @@ void Window::on_menu_file_new_generic()
 
 void Window::on_menu_play() {
   libvlc_media_player_play(mp);
+  libvlc_media_player_set_rate(mp, 1.0);
 }
 
 void Window::on_menu_pause() {
@@ -250,6 +251,10 @@ void Window::on_menu_pause() {
 
 void Window::on_menu_stop() {
   libvlc_media_player_stop(mp);
+}
+
+void Window::on_menu_forward() {
+  libvlc_media_player_set_rate(mp, 3.0);
 }
 
 void Window::on_menu_others()
