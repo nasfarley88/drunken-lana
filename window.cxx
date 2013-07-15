@@ -1,6 +1,7 @@
 #include "window.h"
 #include <gtkmm/stock.h>
 #include <iostream>
+#include <string>
 
 #include <vlc/vlc.h>
 
@@ -174,6 +175,7 @@ void Window::on_menu_file_open() {
 				Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
 
+  
   dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
   dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
 
@@ -202,11 +204,14 @@ void Window::on_menu_file_open() {
 
   case(Gtk::RESPONSE_OK): {
 
+    // libvlc_media_release(m); 	// releasing any other media 
+
     std::cout << "Open clicked." << std::endl;
 
     //Notice that this is an std::string not a Glib::ustring
     std::string filename = dialog.get_filename();
     std::cout << "File selected: " << filename << std::endl;
+    m = libvlc_media_new_path(inst, filename.c_str() );
     break;
 
   }
