@@ -2,11 +2,36 @@
 #include <gtkmm/stock.h>
 #include <iostream>
 
+#include <vlc/vlc.h>
+
 Window::Window()
 : m_Box(Gtk::ORIENTATION_VERTICAL)
 {
-  set_title("main menu example");
-  set_default_size(200, 200);
+  // load the vlc engine
+  inst = libvlc_new(0, NULL);
+
+  // create a new item
+  // m = libvlc_media_new_path(inst, "path to MP3 file");
+
+  // create a media play playing environment
+  // mp = libvlc_media_player_new_from_media(m);
+
+  // no need to keep the media now
+  // libvlc_media_release(m);
+
+  // play the media_player
+  // libvlc_media_player_play(mp);
+
+  // sleep(10);
+
+  // stop playing
+  // libvlc_media_player_stop(mp);
+
+  // free the media_player
+  // libvlc_media_player_release(mp);
+
+  set_title("Drunken Lana");
+  set_default_size(300, 100);
 
   add(m_Box); // put a MenuBar at the top of the box and other stuff below it.
 
@@ -17,9 +42,10 @@ Window::Window()
   m_refActionGroup->add(Gtk::Action::create("FileMenu", "File"));
 
   //Sub-menu.
-  m_refActionGroup->add(Gtk::Action::create("FileOpen", Gtk::Stock::OPEN));
+  m_refActionGroup->add(Gtk::Action::create("FileOpen", Gtk::Stock::OPEN),
+			sigc::mem_fun(*this, &Window::on_menu_file_open));
   m_refActionGroup->add(Gtk::Action::create("FileQuit", Gtk::Stock::QUIT),
-          sigc::mem_fun(*this, &Window::on_menu_file_quit));
+			sigc::mem_fun(*this, &Window::on_menu_file_quit));
 
   //Edit menu:
   // m_refActionGroup->add(Gtk::Action::create("EditMenu", "Edit"));
@@ -140,6 +166,66 @@ Window::~Window()
 void Window::on_menu_file_quit()
 {
   hide(); //Closes the main window to stop the app->run().
+  libvlc_release(inst);
+}
+
+void Window::on_menu_file_open() {
+  Gtk::FileChooserDialog dialog("Please choose file",
+				Gtk::FILE_CHOOSER_ACTION_OPEN);
+  dialog.set_transient_for(*this);
+
+  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+
+  //Add filters, so that only certain file types can be selected:
+
+  // Gtk::FileFilter filter_text;
+  // filter_text.set_name("Text files");
+  // filter_text.add_mime_type("text/plain");
+  // dialog.add_filter(filter_text);
+
+  // Gtk::FileFilter filter_cpp;
+  // filter_cpp.set_name("C/C++ files");
+  // filter_cpp.add_mime_type("text/x-c");
+  // filter_cpp.add_mime_type("text/x-c++");
+  // filter_cpp.add_mime_type("text/x-c-header");
+  // dialog.add_filter(filter_cpp);
+
+  // Gtk::FileFilter filter_any;
+  // filter_any.set_name("Any files");
+  // filter_any.add_pattern("*");
+  // dialog.add_filter(filter_any);
+
+  int result = dialog.run();
+
+  switch(result) {
+
+  case(Gtk::RESPONSE_OK): {
+
+    std::cout << "Open clicked." << std::endl;
+
+    //Notice that this is an std::string not a Glib::ustring
+    std::string filename = dialog.get_filename();
+    std::cout << "File selected: " << filename << std::endl;
+    break;
+
+  }
+
+  case(Gtk::RESPONSE_CANCEL): {
+
+    std::cout << "Cancel clicked." << std::endl;
+    break;
+
+  }
+
+  default: {
+
+    std::cout << "Unexpected button clicked." << std::endl;
+    break;
+
+  }
+
+  }
 }
 
 void Window::on_menu_file_new_generic()
