@@ -65,7 +65,7 @@ Window::Window()
 			sigc::mem_fun(*this, &Window::on_menu_others));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaRewind",
 					    Gtk::Stock::MEDIA_REWIND),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+			sigc::mem_fun(*this, &Window::on_menu_rewind));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPlay",
 					    Gtk::Stock::MEDIA_PLAY),
 			sigc::mem_fun(*this, &Window::on_menu_play));
@@ -78,9 +78,9 @@ Window::Window()
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaForward",
 					    Gtk::Stock::MEDIA_FORWARD),
 			sigc::mem_fun(*this, &Window::on_menu_forward));
-  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
-					    Gtk::Stock::MEDIA_NEXT),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+  // m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
+  // 					    Gtk::Stock::MEDIA_NEXT),
+  // 			sigc::mem_fun(*this, &Window::on_menu_others));
 
 
   //Choices menu, to demonstrate Radio items
@@ -118,7 +118,7 @@ Window::Window()
         "      <menuitem action='PlaybackMediaPause'/>"
         "      <menuitem action='PlaybackMediaStop'/>"
         "      <menuitem action='PlaybackMediaForward'/>"
-        "      <menuitem action='PlaybackMediaNext'/>"
+        // "      <menuitem action='PlaybackMediaNext'/>"
         "    </menu>"
         // "    <menu action='ChoicesMenu'>"
         // "      <menuitem action='ChoiceOne'/>"
@@ -213,6 +213,8 @@ void Window::on_menu_file_open() {
     std::cout << "File selected: " << filename << std::endl;
     m = libvlc_media_new_path(inst, filename.c_str() );
     mp = libvlc_media_player_new_from_media(m);
+    // TODO let the user set the volume
+    libvlc_audio_set_volume_callback(mp, 0.5); // Set the volume
     break;
 
   }
@@ -239,6 +241,11 @@ void Window::on_menu_file_new_generic()
    std::cout << "A File|New menu item was selected." << std::endl;
 }
 
+void Window::on_menu_rewind() {
+  libvlc_time_t t = libvlc_media_player_get_time(mp);
+  libvlc_media_player_set_time(mp, t - 1000);
+  libvlc_media_player_play(mp);
+}
 
 void Window::on_menu_play() {
   libvlc_media_player_play(mp);
