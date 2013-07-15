@@ -16,7 +16,7 @@ private:
 
   // Child widgets:
   Gtk::Grid m_grid;
-  Gtk::Button m_button_1, m_button_2, m_button_quit;
+  Gtk::Button m_skip_to_start, m_rewind, m_play, m_pause, m_stop, m_fast_forward, m_skip_to_end, m_button_quit;
 };
 
 #endif /* GTKMM_WINDOW_H */
