@@ -10,6 +10,7 @@ Window::Window()
 {
   // load the vlc engine
   inst = libvlc_new(0, NULL);
+  mp = libvlc_media_player_new(inst);
 
   // create a new item
   // m = libvlc_media_new_path(inst, "path to MP3 file");
@@ -212,9 +213,11 @@ void Window::on_menu_file_open() {
     std::string filename = dialog.get_filename();
     std::cout << "File selected: " << filename << std::endl;
     m = libvlc_media_new_path(inst, filename.c_str() );
-    mp = libvlc_media_player_new_from_media(m);
+    // mp = libvlc_media_player_new_from_media(m);
+    libvlc_media_player_set_media(mp, m);
+    libvlc_media_release(m);
     // TODO let the user set the volume
-    libvlc_audio_set_volume_callback(mp, 0.5); // Set the volume
+    // libvlc_audio_set_volume_callback(mp, 0.5); // Set the volume
     break;
 
   }
