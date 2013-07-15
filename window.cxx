@@ -68,13 +68,13 @@ Window::Window()
 			sigc::mem_fun(*this, &Window::on_menu_others));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPlay",
 					    Gtk::Stock::MEDIA_PLAY),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+			sigc::mem_fun(*this, &Window::on_menu_play));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPause",
 					    Gtk::Stock::MEDIA_PAUSE),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+			sigc::mem_fun(*this, &Window::on_menu_pause));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaStop",
 					    Gtk::Stock::MEDIA_STOP),
-			sigc::mem_fun(*this, &Window::on_menu_others));
+			sigc::mem_fun(*this, &Window::on_menu_stop));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaForward",
 					    Gtk::Stock::MEDIA_FORWARD),
 			sigc::mem_fun(*this, &Window::on_menu_others));
@@ -212,6 +212,7 @@ void Window::on_menu_file_open() {
     std::string filename = dialog.get_filename();
     std::cout << "File selected: " << filename << std::endl;
     m = libvlc_media_new_path(inst, filename.c_str() );
+    mp = libvlc_media_player_new_from_media(m);
     break;
 
   }
@@ -236,6 +237,19 @@ void Window::on_menu_file_open() {
 void Window::on_menu_file_new_generic()
 {
    std::cout << "A File|New menu item was selected." << std::endl;
+}
+
+
+void Window::on_menu_play() {
+  libvlc_media_player_play(mp);
+}
+
+void Window::on_menu_pause() {
+  libvlc_media_player_set_pause(mp, 1);
+}
+
+void Window::on_menu_stop() {
+  libvlc_media_player_stop(mp);
 }
 
 void Window::on_menu_others()
