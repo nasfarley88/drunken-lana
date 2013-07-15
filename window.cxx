@@ -136,7 +136,7 @@ Window::Window()
         "      <toolitem action='PlaybackMediaPause'/>"
         "      <toolitem action='PlaybackMediaStop'/>"
         "      <toolitem action='PlaybackMediaForward'/>"
-        "      <toolitem action='PlaybackMediaNext'/>"
+        // "      <toolitem action='PlaybackMediaNext'/>"
         "  </toolbar>"
         "</ui>";
 
