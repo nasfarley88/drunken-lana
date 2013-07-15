@@ -15,6 +15,8 @@ protected:
 void on_menu_file_new_generic();
 void on_menu_file_quit();
 void on_menu_file_open();
+void on_menu_previous();
+void on_menu_rewind();
 void on_menu_play();
 void on_menu_pause();
 void on_menu_stop();
