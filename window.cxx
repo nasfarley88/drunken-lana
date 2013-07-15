@@ -13,35 +13,47 @@ Window::Window()
   //Create actions for menus and toolbars:
   m_refActionGroup = Gtk::ActionGroup::create();
 
-  //File|New sub menu:
-  m_refActionGroup->add(Gtk::Action::create("FileNewStandard",
-              Gtk::Stock::NEW, "_New", "Create a new file"),
-          sigc::mem_fun(*this, &Window::on_menu_file_new_generic));
-
-  m_refActionGroup->add(Gtk::Action::create("FileNewFoo",
-              Gtk::Stock::NEW, "New Foo", "Create a new foo"),
-          sigc::mem_fun(*this, &Window::on_menu_file_new_generic));
-
-  m_refActionGroup->add(Gtk::Action::create("FileNewGoo",
-              Gtk::Stock::NEW, "_New Goo", "Create a new goo"),
-          sigc::mem_fun(*this, &Window::on_menu_file_new_generic));
-
   //File menu:
   m_refActionGroup->add(Gtk::Action::create("FileMenu", "File"));
+
   //Sub-menu.
-  m_refActionGroup->add(Gtk::Action::create("FileNew", Gtk::Stock::NEW));
+  m_refActionGroup->add(Gtk::Action::create("FileOpen", Gtk::Stock::OPEN));
   m_refActionGroup->add(Gtk::Action::create("FileQuit", Gtk::Stock::QUIT),
           sigc::mem_fun(*this, &Window::on_menu_file_quit));
 
   //Edit menu:
-  m_refActionGroup->add(Gtk::Action::create("EditMenu", "Edit"));
-  m_refActionGroup->add(Gtk::Action::create("EditCopy", Gtk::Stock::COPY),
-          sigc::mem_fun(*this, &Window::on_menu_others));
-  m_refActionGroup->add(Gtk::Action::create("EditPaste", Gtk::Stock::PASTE),
-          sigc::mem_fun(*this, &Window::on_menu_others));
-  m_refActionGroup->add(Gtk::Action::create("EditSomething", "Something"),
-          Gtk::AccelKey("<control><alt>S"),
-          sigc::mem_fun(*this, &Window::on_menu_others));
+  // m_refActionGroup->add(Gtk::Action::create("EditMenu", "Edit"));
+  // m_refActionGroup->add(Gtk::Action::create("EditCopy", Gtk::Stock::COPY),
+  //         sigc::mem_fun(*this, &Window::on_menu_others));
+  // m_refActionGroup->add(Gtk::Action::create("EditPaste", Gtk::Stock::PASTE),
+  //         sigc::mem_fun(*this, &Window::on_menu_others));
+  // m_refActionGroup->add(Gtk::Action::create("EditSomething", "Something"),
+  //         Gtk::AccelKey("<control><alt>S"),
+  //         sigc::mem_fun(*this, &Window::on_menu_others));
+
+  // Playback menu:
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMenu", "Playback"));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPrevious",
+					    Gtk::Stock::MEDIA_PREVIOUS),
+			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaRewind",
+					    Gtk::Stock::MEDIA_REWIND),
+			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPlay",
+					    Gtk::Stock::MEDIA_PLAY),
+			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPause",
+					    Gtk::Stock::MEDIA_PAUSE),
+			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaStop",
+					    Gtk::Stock::MEDIA_STOP),
+			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaForward",
+					    Gtk::Stock::MEDIA_FORWARD),
+			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
+					    Gtk::Stock::MEDIA_NEXT),
+			sigc::mem_fun(*this, &Window::on_menu_others));
 
 
   //Choices menu, to demonstrate Radio items
@@ -69,30 +81,34 @@ Window::Window()
         "<ui>"
         "  <menubar name='MenuBar'>"
         "    <menu action='FileMenu'>"
-        "      <menu action='FileNew'>"
-        "        <menuitem action='FileNewStandard'/>"
-        "        <menuitem action='FileNewFoo'/>"
-        "        <menuitem action='FileNewGoo'/>"
-        "      </menu>"
-        "      <separator/>"
+        "      <menuitem action='FileOpen'/>"
         "      <menuitem action='FileQuit'/>"
         "    </menu>"
-        "    <menu action='EditMenu'>"
-        "      <menuitem action='EditCopy'/>"
-        "      <menuitem action='EditPaste'/>"
-        "      <menuitem action='EditSomething'/>"
+        "    <menu action='PlaybackMenu'>"
+        "      <menuitem action='PlaybackMediaPrevious'/>"
+        "      <menuitem action='PlaybackMediaRewind'/>"
+        "      <menuitem action='PlaybackMediaPlay'/>"
+        "      <menuitem action='PlaybackMediaPause'/>"
+        "      <menuitem action='PlaybackMediaStop'/>"
+        "      <menuitem action='PlaybackMediaForward'/>"
+        "      <menuitem action='PlaybackMediaNext'/>"
         "    </menu>"
-        "    <menu action='ChoicesMenu'>"
-        "      <menuitem action='ChoiceOne'/>"
-        "      <menuitem action='ChoiceTwo'/>"
-        "    </menu>"
+        // "    <menu action='ChoicesMenu'>"
+        // "      <menuitem action='ChoiceOne'/>"
+        // "      <menuitem action='ChoiceTwo'/>"
+        // "    </menu>"
         "    <menu action='HelpMenu'>"
         "      <menuitem action='HelpAbout'/>"
         "    </menu>"
         "  </menubar>"
         "  <toolbar  name='ToolBar'>"
-        "    <toolitem action='FileNewStandard'/>"
-        "    <toolitem action='FileQuit'/>"
+        "      <toolitem action='PlaybackMediaPrevious'/>"
+        "      <toolitem action='PlaybackMediaRewind'/>"
+        "      <toolitem action='PlaybackMediaPlay'/>"
+        "      <toolitem action='PlaybackMediaPause'/>"
+        "      <toolitem action='PlaybackMediaStop'/>"
+        "      <toolitem action='PlaybackMediaForward'/>"
+        "      <toolitem action='PlaybackMediaNext'/>"
         "  </toolbar>"
         "</ui>";
 
