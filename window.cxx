@@ -1,16 +1,27 @@
 #include "window.h"
 #include <gtkmm/stock.h>
 #include <iostream>
+#include <iomanip>
 #include <string>
+#include <sstream>
 
 #include <vlc/vlc.h>
 
 Window::Window()
-: m_Box(Gtk::ORIENTATION_VERTICAL)
+  : m_Box(Gtk::ORIENTATION_VERTICAL),
+    time_in_title_timeout_value(2)
 {
   // load the vlc engine
   inst = libvlc_new(0, NULL);
   mp = libvlc_media_player_new(inst);
+
+  // Sets the volume
+  std::cout << " result of audio set is " << libvlc_audio_set_volume(mp, 25) << std::endl;
+  
+  sigc::slot<bool> my_slot =
+    sigc::bind(sigc::mem_fun(*this, &Window::time_in_title),0);
+  sigc::connection conn = Glib::signal_timeout().connect(my_slot,
+          time_in_title_timeout_value);
 
   // create a new item
   // m = libvlc_media_new_path(inst, "path to MP3 file");
@@ -79,6 +90,9 @@ Window::Window()
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaForward",
 					    Gtk::Stock::MEDIA_FORWARD),
 			sigc::mem_fun(*this, &Window::on_menu_forward));
+  m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPanic",
+					    "Reset Volume"),
+			sigc::mem_fun(*this, &Window::on_menu_panic));
   // m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
   // 					    Gtk::Stock::MEDIA_NEXT),
   // 			sigc::mem_fun(*this, &Window::on_menu_others));
@@ -119,6 +133,7 @@ Window::Window()
         "      <menuitem action='PlaybackMediaPause'/>"
         "      <menuitem action='PlaybackMediaStop'/>"
         "      <menuitem action='PlaybackMediaForward'/>"
+        "      <menuitem action='PlaybackMediaPanic'/>"
         // "      <menuitem action='PlaybackMediaNext'/>"
         "    </menu>"
         // "    <menu action='ChoicesMenu'>"
@@ -136,6 +151,8 @@ Window::Window()
         "      <toolitem action='PlaybackMediaPause'/>"
         "      <toolitem action='PlaybackMediaStop'/>"
         "      <toolitem action='PlaybackMediaForward'/>"
+        // "      <toolitem action='PlaybackMediaPanic'/>" // TODO get an icon
+        // for this!
         // "      <toolitem action='PlaybackMediaNext'/>"
         "  </toolbar>"
         "</ui>";
@@ -217,7 +234,8 @@ void Window::on_menu_file_open() {
     libvlc_media_player_set_media(mp, m);
     libvlc_media_release(m);
     // TODO let the user set the volume
-    // libvlc_audio_set_volume_callback(mp, 0.5); // Set the volume
+
+    this->set_title("Whut");
     break;
 
   }
@@ -277,6 +295,12 @@ void Window::on_menu_others()
   std::cout << "A menu item was selected." << std::endl;
 }
 
+void Window::on_menu_panic() {
+    std::cout << "Result of audio set is " << libvlc_audio_set_volume(mp, 100) << std::endl;
+    std::cout << "The audio should no longer be distorted" << std::endl;
+    // TODO investigate if distorted audio with libvlc is a known bug (I think it is)
+}
+
 void Window::on_menu_choices_one()
 {
   Glib::ustring message;
@@ -297,4 +321,22 @@ void Window::on_menu_choices_two()
     message = "Choice 2 was deselected";
 
   std::cout << message << std::endl;
+}
+
+bool Window::time_in_title(int x) {
+  std::string tmp;
+  std::stringstream tmpstream;
+  int time_ms = (int)libvlc_media_player_get_time(mp);
+  int length_ms = (int)libvlc_media_player_get_length(mp);
+  tmpstream << (time_ms/60000) % 60 // TODO format these numbers so that it's 01
+				    // instead of 1
+	    << ":"
+	    << (time_ms/1000) % 60
+	    << "/"
+	    << (length_ms/60000) % 60
+	    << ":"
+	    << (length_ms/1000) % 60;
+  tmp = tmpstream.str();
+  this->set_title(tmp.c_str() );
+  return true;
 }
