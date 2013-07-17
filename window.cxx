@@ -23,25 +23,7 @@ Window::Window()
   sigc::connection conn = Glib::signal_timeout().connect(my_slot,
           time_in_title_timeout_value);
 
-  // create a new item
-  // m = libvlc_media_new_path(inst, "path to MP3 file");
-
-  // create a media play playing environment
-  // mp = libvlc_media_player_new_from_media(m);
-
-  // no need to keep the media now
-  // libvlc_media_release(m);
-
-  // play the media_player
-  // libvlc_media_player_play(mp);
-
-  // sleep(10);
-
-  // stop playing
-  // libvlc_media_player_stop(mp);
-
-  // free the media_player
-  // libvlc_media_player_release(mp);
+  current_filename = "null";
 
   set_title("Drunken Lana");
   set_default_size(300, 100);
@@ -59,16 +41,6 @@ Window::Window()
 			sigc::mem_fun(*this, &Window::on_menu_file_open));
   m_refActionGroup->add(Gtk::Action::create("FileQuit", Gtk::Stock::QUIT),
 			sigc::mem_fun(*this, &Window::on_menu_file_quit));
-
-  //Edit menu:
-  // m_refActionGroup->add(Gtk::Action::create("EditMenu", "Edit"));
-  // m_refActionGroup->add(Gtk::Action::create("EditCopy", Gtk::Stock::COPY),
-  //         sigc::mem_fun(*this, &Window::on_menu_others));
-  // m_refActionGroup->add(Gtk::Action::create("EditPaste", Gtk::Stock::PASTE),
-  //         sigc::mem_fun(*this, &Window::on_menu_others));
-  // m_refActionGroup->add(Gtk::Action::create("EditSomething", "Something"),
-  //         Gtk::AccelKey("<control><alt>S"),
-  //         sigc::mem_fun(*this, &Window::on_menu_others));
 
   // Playback menu:
   m_refActionGroup->add(Gtk::Action::create("PlaybackMenu", "Playback"));
@@ -228,6 +200,7 @@ void Window::on_menu_file_open() {
 
     //Notice that this is an std::string not a Glib::ustring
     std::string filename = dialog.get_filename();
+    current_filename = filename;
     std::cout << "File selected: " << filename << std::endl;
     m = libvlc_media_new_path(inst, filename.c_str() );
     // mp = libvlc_media_player_new_from_media(m);
@@ -331,11 +304,17 @@ bool Window::time_in_title(int x) {
   tmpstream << (time_ms/60000) % 60 // TODO format these numbers so that it's 01
 				    // instead of 1
 	    << ":"
+	    << std::setfill('0')
+	    << std::setw(2)
 	    << (time_ms/1000) % 60
 	    << "/"
 	    << (length_ms/60000) % 60
 	    << ":"
-	    << (length_ms/1000) % 60;
+	    << std::setfill('0')
+	    << std::setw(2)
+	    << (length_ms/1000) % 60
+	    << " - "
+	    << current_filename;
   tmp = tmpstream.str();
   this->set_title(tmp.c_str() );
   return true;
