@@ -39,7 +39,8 @@ Window::Window()
   hid_free_enumeration(devs);
 
   // Loads the pedal
-  pedal = hid_open(0x5f3, 0xff, NULL);
+  // pedal = hid_open(0x5f3, 0xff, NULL);
+  pedal = hid_open_path("/dev/hidraw0");
   if (!pedal) {
     printf("unable to open device\n");
   }
@@ -212,6 +213,8 @@ void Window::on_menu_file_quit()
 {
   hide(); //Closes the main window to stop the app->run().
   libvlc_release(inst);
+  hid_close(pedal);
+  hid_exit();
 }
 
 void Window::on_menu_file_open() {
@@ -355,8 +358,7 @@ bool Window::time_in_title(int x) {
   std::stringstream tmpstream;
   int time_ms = (int)libvlc_media_player_get_time(mp);
   int length_ms = (int)libvlc_media_player_get_length(mp);
-  tmpstream << (time_ms/60000) % 60 // TODO format these numbers so that it's 01
-				    // instead of 1
+  tmpstream << (time_ms/60000) % 60
 	    << ":"
 	    << std::setfill('0')
 	    << std::setw(2)
@@ -380,7 +382,7 @@ bool Window::read_pedal(int x) {
   // if the pedal is assigned, do it!
   if(pedal) {
     unsigned char buf[256];
-    int res = hid_read(pedal, buf, sizeof(buf));
+    hid_read(pedal, buf, sizeof(buf));
     if(buf[0] == 00) this->on_menu_play();
     if(buf[0] == 02) this->on_menu_pause();
   }
