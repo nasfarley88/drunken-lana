@@ -5,7 +5,7 @@
 #include <vlc/vlc.h>
 #include <string>
 #include "hidapi.h"
-
+#include "pedal.h"
 
 class Window : public Gtk::Window
 {
@@ -27,6 +27,7 @@ class Window : public Gtk::Window
   void on_menu_others();
   void on_menu_panic();
 
+  void on_menu_pedal_test();
   void on_menu_choices_one();
   void on_menu_choices_two();
 
@@ -54,6 +55,8 @@ class Window : public Gtk::Window
   
 
   // Pedal stuff
+  Pedal * pedal_thread;
+  void pedal_thread_done();
 
   hid_device *pedal;
   unsigned char pedal_buf[256];
