@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include "hidapi.h"
 
-
 #include <vlc/vlc.h>
 
 Window::Window()
@@ -21,49 +20,11 @@ Window::Window()
     read_pedal_timeout(2)
 {
 
-  // Load pedal stuff
-  struct hid_device_info *devs, *cur_dev;
-	
-  devs = hid_enumerate(0x0, 0x0);
-  cur_dev = devs;	
-  while (cur_dev) {
-    printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-    printf("\n");
-    printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-    printf("  Product:      %ls\n", cur_dev->product_string);
-    printf("  Release:      %hx\n", cur_dev->release_number);
-    printf("  Interface:    %d\n",  cur_dev->interface_number);
-    printf("\n");
-    cur_dev = cur_dev->next;
-  }
-  hid_free_enumeration(devs);
-
-  // Loads the pedal
-  // pedal = hid_open(0x5f3, 0xff, NULL);
-  pedal = hid_open_path("/dev/hidraw0");
-  if (!pedal) {
-    printf("unable to open device\n");
-  }
-
-  // I have no idea why these are here. but I need pedal_buf later so I'll put
-  // this in. memset reserves memeroy at the address specified for pedal_buf
-  // memset(pedal_buf,0x00,sizeof(pedal_buf));
-  // pedal_buf[0] = 0x01;
-  // pedal_buf[1] = 0x81;
-
-  // Set the hid_read() function to be non-blocking.
-  if(pedal) hid_set_nonblocking(pedal, 0); // TODO OK, if you can't open the pedal it
-  				 // segfaults here.
-  std::cout << "I just tried to set the device to nonblocking" << std::endl;
   
-  // Now I need a timer for the pedal. 
-  if(pedal) {
-    sigc::slot<bool> pedal_slot =
-      sigc::bind(sigc::mem_fun(*this, &Window::read_pedal),0);
-    sigc::connection pedal_timer_conn =
-     Glib::signal_timeout().connect(pedal_slot, read_pedal_timeout);
-  }
+  // Putting all pedal function in a function in preparation for mulitthreading
+  // all_the_pedal_things(read_pedal_timeout);
 
+  pedal_thread = NULL;
   
   // load the vlc engine
   inst = libvlc_new(0, NULL);
@@ -77,6 +38,7 @@ Window::Window()
     sigc::bind(sigc::mem_fun(*this, &Window::time_in_title),0);
   sigc::connection conn = Glib::signal_timeout().connect(my_slot,
           time_in_title_timeout_value);
+  std::cout << "Second timer set" << std::endl;
 
   current_filename = "null";
 
@@ -123,6 +85,10 @@ Window::Window()
   // m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
   // 					    Gtk::Stock::MEDIA_NEXT),
   // 			sigc::mem_fun(*this, &Window::on_menu_others));
+  m_refActionGroup->add(Gtk::Action::create("PedalMenu", "Pedal"));
+  m_refActionGroup->add(Gtk::Action::create("PedalTest",
+					    Gtk::Stock::MEDIA_PREVIOUS),
+			sigc::mem_fun(*this, &Window::on_menu_pedal_test));
 
 
   //Choices menu, to demonstrate Radio items
@@ -167,6 +133,9 @@ Window::Window()
         // "      <menuitem action='ChoiceOne'/>"
         // "      <menuitem action='ChoiceTwo'/>"
         // "    </menu>"
+        "    <menu action='PedalMenu'>"
+        "      <menuitem action='PedalTest'/>"
+        "    </menu>"
         "    <menu action='HelpMenu'>"
         "      <menuitem action='HelpAbout'/>"
         "    </menu>"
@@ -353,6 +322,28 @@ void Window::on_menu_choices_two()
   std::cout << message << std::endl;
 }
 
+void Window::on_menu_pedal_test() {
+  // This is a copy of the go() function from
+  // http://www.velvetcache.org/2008/09/30/gtkmmglibmm-thread-example
+  std::cout << "on_menu_pedal_test() started" << std::endl;
+  if(pedal_thread != NULL){
+    std::cout << "pedal_thread is non-null" << std::endl;
+    return;
+  }
+ 
+  pedal_thread = new Pedal();
+  pedal_thread->sig_done.connect(sigc::mem_fun(*this, &Window::pedal_thread_done));
+  pedal_thread->start();
+  std::cout << "pedal_thread started" << std::endl;
+
+}
+
+void Window::pedal_thread_done() {
+  std::cout << "Pedal thread done" << std::endl;
+  delete pedal_thread;
+  pedal_thread = NULL;
+}
+
 bool Window::time_in_title(int x) {
   std::string tmp;
   std::stringstream tmpstream;
@@ -381,13 +372,66 @@ bool Window::time_in_title(int x) {
 bool Window::read_pedal(int x) {
   // if the pedal is assigned, do it!
   if(pedal) {
-    unsigned char buf[256];
+    std::cout << "Here is where I would've read from the pedal!" << std::endl;
+    unsigned char buf[1];
     hid_read(pedal, buf, sizeof(buf));
-    if(buf[0] == 00) this->on_menu_play();
-    if(buf[0] == 02) this->on_menu_pause();
+    std::cout << "But here I have actually read from the pedal" << std::endl;
+    if(buf[0] == 00) this->on_menu_pause();
+    if(buf[0] == 02) this->on_menu_play();
   }
   else {
     std::cout << "No pedal is attached" << std::endl;
   }
   return true;
+}
+
+
+void Window::all_the_pedal_things(const int x) {
+  // Load pedal stuff
+  hid_init();
+  struct hid_device_info *devs, *cur_dev;
+	
+  devs = hid_enumerate(0x0, 0x0);
+  cur_dev = devs;	
+  while (cur_dev) {
+    printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
+    printf("\n");
+    printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+    printf("  Product:      %ls\n", cur_dev->product_string);
+    printf("  Release:      %hx\n", cur_dev->release_number);
+    printf("  Interface:    %d\n",  cur_dev->interface_number);
+    printf("\n");
+    cur_dev = cur_dev->next;
+  }
+  hid_free_enumeration(devs);
+
+  // Loads the pedal
+  pedal = hid_open(0x5f3, 0xff, NULL);
+  // pedal = hid_open_path("/dev/hidraw0");
+  if (!pedal) {
+    printf("unable to open device\n");
+  } else {
+    std::cout << "Device open!" << std::endl;
+  }
+
+  // I have no idea why these are here. but I need pedal_buf later so I'll put
+  // this in. memset reserves memeroy at the address specified for pedal_buf
+  // memset(pedal_buf,0x00,sizeof(pedal_buf));
+  // pedal_buf[0] = 0x01;
+  // pedal_buf[1] = 0x81;
+
+  // Set the hid_read() function to be non-blocking.
+  if(pedal) hid_set_nonblocking(pedal, 1);
+  std::cout << "I just tried to set the device to nonblocking" << std::endl;
+  
+  // Now I need a timer for the pedal. 
+  if(pedal) {
+    sigc::slot<bool> pedal_slot =
+      sigc::bind(sigc::mem_fun(*this, &Window::read_pedal),0);
+    sigc::connection pedal_timer_conn =
+      Glib::signal_timeout().connect(pedal_slot, read_pedal_timeout);
+  }
+
+  std::cout << "First timer set" << std::endl;
+
 }
