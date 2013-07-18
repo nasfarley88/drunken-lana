@@ -5,19 +5,73 @@
 #include <string>
 #include <sstream>
 
+// USB stuff
+#include <stdio.h>
+#include <wchar.h>
+#include <string.h>
+#include <stdlib.h>
+#include "hidapi.h"
+
+
 #include <vlc/vlc.h>
 
 Window::Window()
   : m_Box(Gtk::ORIENTATION_VERTICAL),
-    time_in_title_timeout_value(2)
+    time_in_title_timeout_value(2),
+    read_pedal_timeout(2)
 {
+
+  // Load pedal stuff
+  struct hid_device_info *devs, *cur_dev;
+	
+  devs = hid_enumerate(0x0, 0x0);
+  cur_dev = devs;	
+  while (cur_dev) {
+    printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
+    printf("\n");
+    printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+    printf("  Product:      %ls\n", cur_dev->product_string);
+    printf("  Release:      %hx\n", cur_dev->release_number);
+    printf("  Interface:    %d\n",  cur_dev->interface_number);
+    printf("\n");
+    cur_dev = cur_dev->next;
+  }
+  hid_free_enumeration(devs);
+
+  // Loads the pedal
+  pedal = hid_open(0x5f3, 0xff, NULL);
+  if (!pedal) {
+    printf("unable to open device\n");
+  }
+
+  // I have no idea why these are here. but I need pedal_buf later so I'll put
+  // this in. memset reserves memeroy at the address specified for pedal_buf
+  // memset(pedal_buf,0x00,sizeof(pedal_buf));
+  // pedal_buf[0] = 0x01;
+  // pedal_buf[1] = 0x81;
+
+  // Set the hid_read() function to be non-blocking.
+  if(pedal) hid_set_nonblocking(pedal, 0); // TODO OK, if you can't open the pedal it
+  				 // segfaults here.
+  std::cout << "I just tried to set the device to nonblocking" << std::endl;
+  
+  // Now I need a timer for the pedal. 
+  if(pedal) {
+    sigc::slot<bool> pedal_slot =
+      sigc::bind(sigc::mem_fun(*this, &Window::read_pedal),0);
+    sigc::connection pedal_timer_conn =
+     Glib::signal_timeout().connect(pedal_slot, read_pedal_timeout);
+  }
+
+  
   // load the vlc engine
   inst = libvlc_new(0, NULL);
   mp = libvlc_media_player_new(inst);
 
   // Sets the volume
   std::cout << " result of audio set is " << libvlc_audio_set_volume(mp, 25) << std::endl;
-  
+
+  // Tiimer stuff
   sigc::slot<bool> my_slot =
     sigc::bind(sigc::mem_fun(*this, &Window::time_in_title),0);
   sigc::connection conn = Glib::signal_timeout().connect(my_slot,
@@ -317,5 +371,21 @@ bool Window::time_in_title(int x) {
 	    << current_filename;
   tmp = tmpstream.str();
   this->set_title(tmp.c_str() );
+  return true;
+}
+
+// TODO add a condition that looks for a change in pedal state rather than what
+// the state currently is
+bool Window::read_pedal(int x) {
+  // if the pedal is assigned, do it!
+  if(pedal) {
+    unsigned char buf[256];
+    int res = hid_read(pedal, buf, sizeof(buf));
+    if(buf[0] == 00) this->on_menu_play();
+    if(buf[0] == 02) this->on_menu_pause();
+  }
+  else {
+    std::cout << "No pedal is attached" << std::endl;
+  }
   return true;
 }
