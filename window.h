@@ -3,6 +3,9 @@
 
 #include <gtkmm.h>
 #include <vlc/vlc.h>
+#include <string>
+#include "hidapi.h"
+
 
 class Window : public Gtk::Window
 {
@@ -39,13 +42,25 @@ class Window : public Gtk::Window
   libvlc_media_player_t *mp;
   libvlc_media_t *m;
 
+  std::string current_filename;
+
   // Timer stuffs
   bool time_in_title(int x); // aparently callback functions need to
                              // be passed something
 
   const int time_in_title_timeout_value;
 
-  sigc::connection time_in_title_timer;
+  sigc::connection time_in_title_timer; /* This isn't used... */
+  
+
+  // Pedal stuff
+
+  hid_device *pedal;
+  unsigned char pedal_buf[256];
+  bool read_pedal(int x);
+  const int read_pedal_timeout;
+  void all_the_pedal_things(const int);
+
 
 };
 
