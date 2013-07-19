@@ -70,7 +70,7 @@ void Pedal::run () {
     // Load pedal stuff
   
     // If the pedal is open, enter a blocking loop to read the pedal state
-    // TODO add a stop condition to change pedal
+    // TODO add a stop condition to change pedal, probably using Pedal::stop
     if(pedal) {
       while (true) {
       	this->read_pedal();
