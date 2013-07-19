@@ -353,6 +353,17 @@ void MyWindow::on_menu_pedal_test() {
 
 }
 
+void MyWindow::on_menu_pedal_none() {
+  if(pedal_thread == NULL) {
+    std::cout << "There's no pedal defined in pedal_thread to delete" << std::endl;
+    return;
+  } else {
+    std::cout << "Pedal thread finished" << std::endl;
+    delete pedal_thread;
+    pedal_thread = NULL;
+  }
+}
+
 void MyWindow::pedal_thread_done() {
   std::cout << "Pedal thread done" << std::endl;
   delete pedal_thread;
