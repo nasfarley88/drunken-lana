@@ -37,7 +37,8 @@ class MyWindow : public Gtk::Window
 
   Glib::RefPtr<Gtk::UIManager> m_refUIManager;
   Glib::RefPtr<Gtk::ActionGroup> m_refActionGroup;
-  Glib::RefPtr<Gtk::RadioAction> m_refChoiceOne, m_refChoiceTwo;
+  Glib::RefPtr<Gtk::RadioAction> m_refPedalNone, m_refPedalVECInfinity, m_refChoiceOne, m_refChoiceTwo;
+  Gtk::RadioAction::Group group_userlevel;
 
 
   libvlc_instance_t *inst;
