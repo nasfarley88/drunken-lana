@@ -90,11 +90,12 @@ void Pedal::run () {
 bool Pedal::read_pedal(int x) {
   // if the pedal is assigned, do it!
   if(pedal) {
-    std::cout << "Here is where I would've read from the pedal!" << std::endl;
+    // std::cout << "Here is where I would've read from the pedal!" << std::endl;
     unsigned char buf[1];
     hid_read(pedal, buf, sizeof(buf));
-    std::cout << "But here I have actually read from the pedal" << std::endl;
+    // std::cout << "But here I have actually read from the pedal" << std::endl;
     if(buf[0] == 00) (*(MyWindow*)mywindow).on_menu_pause();
+    if(buf[0] == 01) (*(MyWindow*)mywindow).on_menu_forward();
     if(buf[0] == 02) (*(MyWindow*)mywindow).on_menu_play();
   }
   else {
