@@ -39,12 +39,12 @@ MyWindow::MyWindow()
     sigc::bind(sigc::mem_fun(*this, &MyWindow::time_in_title),0);
   sigc::connection conn = Glib::signal_timeout().connect(my_slot,
           time_in_title_timeout_value);
-  std::cout << "Second timer set" << std::endl;
+  std::cout << "Title timer set" << std::endl;
 
   current_filename = "null";
 
   set_title("Drunken Lana");
-  set_default_size(300, 100);
+  set_default_size(235, 45);
 
   add(m_Box); // put a MenuBar at the top of the box and other stuff below it.
 
@@ -87,9 +87,21 @@ MyWindow::MyWindow()
   // 					    Gtk::Stock::MEDIA_NEXT),
   // 			sigc::mem_fun(*this, &MyWindow::on_menu_others));
   m_refActionGroup->add(Gtk::Action::create("PedalMenu", "Pedal"));
-  m_refActionGroup->add(Gtk::Action::create("PedalTest",
-					    Gtk::Stock::MEDIA_PREVIOUS),
-			sigc::mem_fun(*this, &MyWindow::on_menu_pedal_test));
+  m_refPedalNone = Gtk::RadioAction::create(group_userlevel,
+					    "PedalNone",
+					    "None");
+  m_refActionGroup->add(m_refPedalNone,
+          sigc::mem_fun(*this, &MyWindow::on_menu_choices_one));
+  
+  m_refPedalVECInfinity = Gtk::RadioAction::create(group_userlevel,
+  					    "PedalVECInfinity",
+  					    "VEC Infinity");
+  m_refActionGroup->add(m_refPedalVECInfinity,
+          sigc::mem_fun(*this, &MyWindow::on_menu_pedal_test));
+
+  // m_refActionGroup->add(Gtk::Action::create("PedalTest",
+  // 					    Gtk::Stock::MEDIA_PREVIOUS),
+  // 			sigc::mem_fun(*this, &MyWindow::on_menu_pedal_test));
 
 
   //Choices menu, to demonstrate Radio items
@@ -135,7 +147,8 @@ MyWindow::MyWindow()
         // "      <menuitem action='ChoiceTwo'/>"
         // "    </menu>"
         "    <menu action='PedalMenu'>"
-        "      <menuitem action='PedalTest'/>"
+        "      <menuitem action='PedalNone'/>"
+        "      <menuitem action='PedalVECInfinity'/>"
         "    </menu>"
         "    <menu action='HelpMenu'>"
         "      <menuitem action='HelpAbout'/>"
