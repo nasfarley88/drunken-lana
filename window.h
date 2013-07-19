@@ -29,6 +29,7 @@ class MyWindow : public Gtk::Window
   void on_menu_panic();
 
   void on_menu_pedal_test();
+  void on_menu_pedal_none();
   void on_menu_choices_one();
   void on_menu_choices_two();
 
