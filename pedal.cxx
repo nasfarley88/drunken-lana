@@ -69,15 +69,11 @@ void Pedal::run () {
     }
     // Load pedal stuff
   
-    // Now I need a timer for the pedal. 
+    // If the pedal is open, enter a blocking loop to read the pedal state
+    // TODO add a stop condition to change pedal
     if(pedal) {
-      // sigc::slot<bool> pedal_slot =
-      // 	sigc::bind(sigc::mem_fun(*this, &Pedal::read_pedal), 0);
-      // sigc::connection pedal_timer_conn =
-      // 	Glib::signal_timeout().connect(pedal_slot, read_pedal_timeout);
       while (true) {
-	// sleep(2);
-      	this->read_pedal(0);
+      	this->read_pedal();
       }
     }
 
@@ -87,16 +83,15 @@ void Pedal::run () {
   }
 }
 
-bool Pedal::read_pedal(int x) {
+bool Pedal::read_pedal() {
   // if the pedal is assigned, do it!
   if(pedal) {
-    // std::cout << "Here is where I would've read from the pedal!" << std::endl;
     unsigned char buf[1];
     hid_read(pedal, buf, sizeof(buf));
-    // std::cout << "But here I have actually read from the pedal" << std::endl;
     if(buf[0] == 00) (*(MyWindow*)mywindow).on_menu_pause();
     if(buf[0] == 01) (*(MyWindow*)mywindow).on_menu_forward();
     if(buf[0] == 02) (*(MyWindow*)mywindow).on_menu_play();
+    if(buf[0] == 04) (*(MyWindow*)mywindow).on_menu_rewind();
   }
   else {
     std::cout << "No pedal is attached" << std::endl;
