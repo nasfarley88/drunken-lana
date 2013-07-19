@@ -14,7 +14,7 @@ class Pedal : public sigc::trackable
  protected:
   hid_device *pedal;
   unsigned char pedal_buf[256];
-  bool read_pedal(int x);
+  bool read_pedal();
   const int read_pedal_timeout;
   void * mywindow;
 
