@@ -274,8 +274,8 @@ void MyWindow::on_menu_rewind() {
 }
 
 void MyWindow::on_menu_play() {
-  libvlc_media_player_play(mp);
   libvlc_media_player_set_rate(mp, 1.0);
+  libvlc_media_player_play(mp);
 }
 
 void MyWindow::on_menu_pause() {
@@ -288,6 +288,7 @@ void MyWindow::on_menu_stop() {
 
 void MyWindow::on_menu_forward() {
   libvlc_media_player_set_rate(mp, 3.0);
+  libvlc_media_player_play(mp);
 }
 
 void MyWindow::on_menu_others()
