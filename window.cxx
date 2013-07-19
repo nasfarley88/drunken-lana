@@ -14,12 +14,13 @@
 
 #include <vlc/vlc.h>
 
-Window::Window()
+MyWindow::MyWindow()
   : m_Box(Gtk::ORIENTATION_VERTICAL),
     time_in_title_timeout_value(2),
     read_pedal_timeout(2)
 {
-
+  // Initialise the HIDAPI
+  hid_init();
   
   // Putting all pedal function in a function in preparation for mulitthreading
   // all_the_pedal_things(read_pedal_timeout);
@@ -35,7 +36,7 @@ Window::Window()
 
   // Tiimer stuff
   sigc::slot<bool> my_slot =
-    sigc::bind(sigc::mem_fun(*this, &Window::time_in_title),0);
+    sigc::bind(sigc::mem_fun(*this, &MyWindow::time_in_title),0);
   sigc::connection conn = Glib::signal_timeout().connect(my_slot,
           time_in_title_timeout_value);
   std::cout << "Second timer set" << std::endl;
@@ -55,40 +56,40 @@ Window::Window()
 
   //Sub-menu.
   m_refActionGroup->add(Gtk::Action::create("FileOpen", Gtk::Stock::OPEN),
-			sigc::mem_fun(*this, &Window::on_menu_file_open));
+			sigc::mem_fun(*this, &MyWindow::on_menu_file_open));
   m_refActionGroup->add(Gtk::Action::create("FileQuit", Gtk::Stock::QUIT),
-			sigc::mem_fun(*this, &Window::on_menu_file_quit));
+			sigc::mem_fun(*this, &MyWindow::on_menu_file_quit));
 
   // Playback menu:
   m_refActionGroup->add(Gtk::Action::create("PlaybackMenu", "Playback"));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPrevious",
 					    Gtk::Stock::MEDIA_PREVIOUS),
-			sigc::mem_fun(*this, &Window::on_menu_previous));
+			sigc::mem_fun(*this, &MyWindow::on_menu_previous));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaRewind",
 					    Gtk::Stock::MEDIA_REWIND),
-			sigc::mem_fun(*this, &Window::on_menu_rewind));
+			sigc::mem_fun(*this, &MyWindow::on_menu_rewind));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPlay",
 					    Gtk::Stock::MEDIA_PLAY),
-			sigc::mem_fun(*this, &Window::on_menu_play));
+			sigc::mem_fun(*this, &MyWindow::on_menu_play));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPause",
 					    Gtk::Stock::MEDIA_PAUSE),
-			sigc::mem_fun(*this, &Window::on_menu_pause));
+			sigc::mem_fun(*this, &MyWindow::on_menu_pause));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaStop",
 					    Gtk::Stock::MEDIA_STOP),
-			sigc::mem_fun(*this, &Window::on_menu_stop));
+			sigc::mem_fun(*this, &MyWindow::on_menu_stop));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaForward",
 					    Gtk::Stock::MEDIA_FORWARD),
-			sigc::mem_fun(*this, &Window::on_menu_forward));
+			sigc::mem_fun(*this, &MyWindow::on_menu_forward));
   m_refActionGroup->add(Gtk::Action::create("PlaybackMediaPanic",
 					    "Reset Volume"),
-			sigc::mem_fun(*this, &Window::on_menu_panic));
+			sigc::mem_fun(*this, &MyWindow::on_menu_panic));
   // m_refActionGroup->add(Gtk::Action::create("PlaybackMediaNext",
   // 					    Gtk::Stock::MEDIA_NEXT),
-  // 			sigc::mem_fun(*this, &Window::on_menu_others));
+  // 			sigc::mem_fun(*this, &MyWindow::on_menu_others));
   m_refActionGroup->add(Gtk::Action::create("PedalMenu", "Pedal"));
   m_refActionGroup->add(Gtk::Action::create("PedalTest",
 					    Gtk::Stock::MEDIA_PREVIOUS),
-			sigc::mem_fun(*this, &Window::on_menu_pedal_test));
+			sigc::mem_fun(*this, &MyWindow::on_menu_pedal_test));
 
 
   //Choices menu, to demonstrate Radio items
@@ -96,15 +97,15 @@ Window::Window()
   Gtk::RadioAction::Group group_userlevel;
   m_refChoiceOne = Gtk::RadioAction::create(group_userlevel, "ChoiceOne", "One");
   m_refActionGroup->add(m_refChoiceOne,
-          sigc::mem_fun(*this, &Window::on_menu_choices_one) );
+          sigc::mem_fun(*this, &MyWindow::on_menu_choices_one) );
   m_refChoiceTwo = Gtk::RadioAction::create(group_userlevel, "ChoiceTwo", "Two");
   m_refActionGroup->add(m_refChoiceTwo,
-          sigc::mem_fun(*this, &Window::on_menu_choices_two) );
+          sigc::mem_fun(*this, &MyWindow::on_menu_choices_two) );
 
   //Help menu:
   m_refActionGroup->add( Gtk::Action::create("HelpMenu", "Help") );
   m_refActionGroup->add( Gtk::Action::create("HelpAbout", Gtk::Stock::HELP),
-          sigc::mem_fun(*this, &Window::on_menu_others) );
+          sigc::mem_fun(*this, &MyWindow::on_menu_others) );
 
   m_refUIManager = Gtk::UIManager::create();
   m_refUIManager->insert_action_group(m_refActionGroup);
@@ -174,11 +175,11 @@ Window::Window()
   show_all_children();
 }
 
-Window::~Window()
+MyWindow::~MyWindow()
 {
 }
 
-void Window::on_menu_file_quit()
+void MyWindow::on_menu_file_quit()
 {
   hide(); //Closes the main window to stop the app->run().
   libvlc_release(inst);
@@ -186,7 +187,7 @@ void Window::on_menu_file_quit()
   hid_exit();
 }
 
-void Window::on_menu_file_open() {
+void MyWindow::on_menu_file_open() {
   Gtk::FileChooserDialog dialog("Please choose file",
 				Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
@@ -256,51 +257,51 @@ void Window::on_menu_file_open() {
   }
 }
 
-void Window::on_menu_file_new_generic()
+void MyWindow::on_menu_file_new_generic()
 {
    std::cout << "A File|New menu item was selected." << std::endl;
 }
 
-void Window::on_menu_previous() {
+void MyWindow::on_menu_previous() {
   libvlc_media_player_set_time(mp, 0);
   libvlc_media_player_play(mp);
 }
 
-void Window::on_menu_rewind() {
+void MyWindow::on_menu_rewind() {
   libvlc_time_t t = libvlc_media_player_get_time(mp);
   libvlc_media_player_set_time(mp, t - 1000);
   libvlc_media_player_play(mp);
 }
 
-void Window::on_menu_play() {
+void MyWindow::on_menu_play() {
   libvlc_media_player_play(mp);
   libvlc_media_player_set_rate(mp, 1.0);
 }
 
-void Window::on_menu_pause() {
+void MyWindow::on_menu_pause() {
   libvlc_media_player_set_pause(mp, 1);
 }
 
-void Window::on_menu_stop() {
+void MyWindow::on_menu_stop() {
   libvlc_media_player_stop(mp);
 }
 
-void Window::on_menu_forward() {
+void MyWindow::on_menu_forward() {
   libvlc_media_player_set_rate(mp, 3.0);
 }
 
-void Window::on_menu_others()
+void MyWindow::on_menu_others()
 {
   std::cout << "A menu item was selected." << std::endl;
 }
 
-void Window::on_menu_panic() {
+void MyWindow::on_menu_panic() {
     std::cout << "Result of audio set is " << libvlc_audio_set_volume(mp, 100) << std::endl;
     std::cout << "The audio should no longer be distorted" << std::endl;
     // TODO investigate if distorted audio with libvlc is a known bug (I think it is)
 }
 
-void Window::on_menu_choices_one()
+void MyWindow::on_menu_choices_one()
 {
   Glib::ustring message;
   if(m_refChoiceOne->get_active())
@@ -311,7 +312,7 @@ void Window::on_menu_choices_one()
   std::cout << message << std::endl;
 }
 
-void Window::on_menu_choices_two()
+void MyWindow::on_menu_choices_two()
 {
   Glib::ustring message;
   if(m_refChoiceTwo->get_active())
@@ -322,7 +323,7 @@ void Window::on_menu_choices_two()
   std::cout << message << std::endl;
 }
 
-void Window::on_menu_pedal_test() {
+void MyWindow::on_menu_pedal_test() {
   // This is a copy of the go() function from
   // http://www.velvetcache.org/2008/09/30/gtkmmglibmm-thread-example
   std::cout << "on_menu_pedal_test() started" << std::endl;
@@ -331,20 +332,20 @@ void Window::on_menu_pedal_test() {
     return;
   }
  
-  pedal_thread = new Pedal();
-  pedal_thread->sig_done.connect(sigc::mem_fun(*this, &Window::pedal_thread_done));
+  pedal_thread = new Pedal(this); // pass this window as a pointer to the Pedal
+  pedal_thread->sig_done.connect(sigc::mem_fun(*this, &MyWindow::pedal_thread_done));
   pedal_thread->start();
   std::cout << "pedal_thread started" << std::endl;
 
 }
 
-void Window::pedal_thread_done() {
+void MyWindow::pedal_thread_done() {
   std::cout << "Pedal thread done" << std::endl;
   delete pedal_thread;
   pedal_thread = NULL;
 }
 
-bool Window::time_in_title(int x) {
+bool MyWindow::time_in_title(int x) {
   std::string tmp;
   std::stringstream tmpstream;
   int time_ms = (int)libvlc_media_player_get_time(mp);
@@ -369,69 +370,9 @@ bool Window::time_in_title(int x) {
 
 // TODO add a condition that looks for a change in pedal state rather than what
 // the state currently is
-bool Window::read_pedal(int x) {
-  // if the pedal is assigned, do it!
-  if(pedal) {
-    std::cout << "Here is where I would've read from the pedal!" << std::endl;
-    unsigned char buf[1];
-    hid_read(pedal, buf, sizeof(buf));
-    std::cout << "But here I have actually read from the pedal" << std::endl;
-    if(buf[0] == 00) this->on_menu_pause();
-    if(buf[0] == 02) this->on_menu_play();
-  }
-  else {
-    std::cout << "No pedal is attached" << std::endl;
-  }
-  return true;
-}
 
 
-void Window::all_the_pedal_things(const int x) {
-  // Load pedal stuff
-  hid_init();
-  struct hid_device_info *devs, *cur_dev;
-	
-  devs = hid_enumerate(0x0, 0x0);
-  cur_dev = devs;	
-  while (cur_dev) {
-    printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-    printf("\n");
-    printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-    printf("  Product:      %ls\n", cur_dev->product_string);
-    printf("  Release:      %hx\n", cur_dev->release_number);
-    printf("  Interface:    %d\n",  cur_dev->interface_number);
-    printf("\n");
-    cur_dev = cur_dev->next;
-  }
-  hid_free_enumeration(devs);
+void MyWindow::all_the_pedal_things(const int x) {
 
-  // Loads the pedal
-  pedal = hid_open(0x5f3, 0xff, NULL);
-  // pedal = hid_open_path("/dev/hidraw0");
-  if (!pedal) {
-    printf("unable to open device\n");
-  } else {
-    std::cout << "Device open!" << std::endl;
-  }
-
-  // I have no idea why these are here. but I need pedal_buf later so I'll put
-  // this in. memset reserves memeroy at the address specified for pedal_buf
-  // memset(pedal_buf,0x00,sizeof(pedal_buf));
-  // pedal_buf[0] = 0x01;
-  // pedal_buf[1] = 0x81;
-
-  // Set the hid_read() function to be non-blocking.
-  if(pedal) hid_set_nonblocking(pedal, 1);
-  std::cout << "I just tried to set the device to nonblocking" << std::endl;
-  
-  // Now I need a timer for the pedal. 
-  if(pedal) {
-    sigc::slot<bool> pedal_slot =
-      sigc::bind(sigc::mem_fun(*this, &Window::read_pedal),0);
-    sigc::connection pedal_timer_conn =
-      Glib::signal_timeout().connect(pedal_slot, read_pedal_timeout);
-  }
-
-  std::cout << "First timer set" << std::endl;
 
 }
