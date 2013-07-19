@@ -7,23 +7,24 @@
 #include "hidapi.h"
 #include "pedal.h"
 
-class Window : public Gtk::Window
+class MyWindow : public Gtk::Window
 {
  public:
-  Window();
-  virtual ~Window();
+  MyWindow();
+  virtual ~MyWindow();
 
- protected:
-  //Signal handlers:
-  void on_menu_file_new_generic();
-  void on_menu_file_quit();
-  void on_menu_file_open();
   void on_menu_previous();
   void on_menu_rewind();
   void on_menu_play();
   void on_menu_pause();
   void on_menu_stop();
   void on_menu_forward();
+
+ protected:
+  //Signal handlers:
+  void on_menu_file_new_generic();
+  void on_menu_file_quit();
+  void on_menu_file_open();
   void on_menu_others();
   void on_menu_panic();
 
