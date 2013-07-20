@@ -39,12 +39,18 @@ class MyWindow : public Gtk::Window
   void on_menu_choices_two();
 
   //Child widgets:
-  Gtk::Box m_Box;
-
   Glib::RefPtr<Gtk::UIManager> m_refUIManager;
   Glib::RefPtr<Gtk::ActionGroup> m_refActionGroup;
   Glib::RefPtr<Gtk::RadioAction> m_refPedalNone, m_refPedalVECInfinity, m_refChoiceOne, m_refChoiceTwo;
   Gtk::RadioAction::Group group_userlevel;
+
+  Gtk::Box m_Box;
+  Gtk::Box m_now_playing_box;
+  Gtk::Label m_time_label;
+  Glib::RefPtr<Gtk::Adjustment> m_now_playing_adjustment;
+  Gtk::Scale m_now_playing_scale;
+
+  
 
 
   libvlc_instance_t *inst;
