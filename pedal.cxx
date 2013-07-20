@@ -72,12 +72,12 @@ void Pedal::run () {
     // If the pedal is open, enter a blocking loop to read the pedal state
     // TODO add a stop condition to change pedal, probably using Pedal::stop
     if(pedal) {
-      while (true) {
+      while ( !(*(MyWindow*)mywindow).pedal_stop() ) {
       	this->read_pedal();
       }
     }
 
-    std::cout << "Pedal timer set" << std::endl;
+    // std::cout << "Pedal timer set" << std::endl;
     sig_done();
     break;
   }
