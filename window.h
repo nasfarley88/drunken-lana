@@ -20,7 +20,12 @@ class MyWindow : public Gtk::Window
   void on_menu_stop();
   void on_menu_forward();
 
+  // function to return pedal_stop_condition
+  bool pedal_stop();
+
  protected:
+  // To signal the stop of the pedal loop
+  bool pedal_stop_condition;
   //Signal handlers:
   void on_menu_file_new_generic();
   void on_menu_file_quit();
@@ -66,7 +71,6 @@ class MyWindow : public Gtk::Window
   bool read_pedal(int x);
   const int read_pedal_timeout;
   void all_the_pedal_things(const int);
-
 
 };
 
