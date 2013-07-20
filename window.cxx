@@ -1,4 +1,5 @@
-#include "window.h"
+#include "window.h"		// TODO make the adjustment thing match up to
+				// the libvlc player
 #include <gtkmm/stock.h>
 #include <iostream>
 #include <iomanip>
@@ -16,6 +17,10 @@
 
 MyWindow::MyWindow()
   : m_Box(Gtk::ORIENTATION_VERTICAL),
+    m_now_playing_box(Gtk::ORIENTATION_HORIZONTAL),
+    m_time_label("time will go here"),
+    m_now_playing_adjustment( Gtk::Adjustment::create(0.0, 0.0, 1.0)),
+    m_now_playing_scale(m_now_playing_adjustment, Gtk::ORIENTATION_HORIZONTAL),
     time_in_title_timeout_value(2),
     read_pedal_timeout(2)
 {
@@ -185,6 +190,18 @@ MyWindow::MyWindow()
   Gtk::Widget* pToolbar = m_refUIManager->get_widget("/ToolBar") ;
   if(pToolbar)
     m_Box.pack_start(*pToolbar, Gtk::PACK_SHRINK);
+
+  add(m_now_playing_box);
+  m_Box.pack_end(m_now_playing_box, Gtk::PACK_SHRINK);
+
+  //m_now_playing_scale:
+  m_now_playing_scale.set_digits(1);
+  m_now_playing_scale.set_value_pos(Gtk::POS_TOP);
+  m_now_playing_scale.set_draw_value();
+  m_now_playing_scale.set_size_request(200,10);
+
+  m_now_playing_box.pack_start(m_now_playing_scale, Gtk::PACK_SHRINK);
+  m_now_playing_box.pack_start(m_time_label,  Gtk::PACK_SHRINK);
 
   show_all_children();
 }
