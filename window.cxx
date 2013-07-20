@@ -26,6 +26,7 @@ MyWindow::MyWindow()
   // all_the_pedal_things(read_pedal_timeout);
 
   pedal_thread = NULL;
+  pedal_stop_condition = false;
   
   // load the vlc engine
   inst = libvlc_new(0, NULL);
@@ -91,7 +92,7 @@ MyWindow::MyWindow()
 					    "PedalNone",
 					    "None");
   m_refActionGroup->add(m_refPedalNone,
-          sigc::mem_fun(*this, &MyWindow::on_menu_choices_one));
+          sigc::mem_fun(*this, &MyWindow::on_menu_pedal_none));
   
   m_refPedalVECInfinity = Gtk::RadioAction::create(group_userlevel,
   					    "PedalVECInfinity",
@@ -341,16 +342,16 @@ void MyWindow::on_menu_pedal_test() {
   // This is a copy of the go() function from
   // http://www.velvetcache.org/2008/09/30/gtkmmglibmm-thread-example
   std::cout << "on_menu_pedal_test() started" << std::endl;
-  if(pedal_thread != NULL){
+  if(pedal_thread != NULL) {
     std::cout << "pedal_thread is non-null" << std::endl;
     return;
+  } else {
+    pedal_stop_condition = false;
+    pedal_thread = new Pedal(this); // pass this window as a pointer to the Pedal
+    pedal_thread->sig_done.connect(sigc::mem_fun(*this, &MyWindow::pedal_thread_done));
+    pedal_thread->start();
+    std::cout << "pedal_thread started" << std::endl;
   }
- 
-  pedal_thread = new Pedal(this); // pass this window as a pointer to the Pedal
-  pedal_thread->sig_done.connect(sigc::mem_fun(*this, &MyWindow::pedal_thread_done));
-  pedal_thread->start();
-  std::cout << "pedal_thread started" << std::endl;
-
 }
 
 void MyWindow::on_menu_pedal_none() {
@@ -359,12 +360,13 @@ void MyWindow::on_menu_pedal_none() {
     return;
   } else {
     std::cout << "Pedal thread finished" << std::endl;
+    pedal_stop_condition = true;
     delete pedal_thread;
     pedal_thread = NULL;
   }
 }
 
-void MyWindow::pedal_thread_done() {
+void MyWindow::pedal_thread_done() { // TODO see if this is needed anymore
   std::cout << "Pedal thread done" << std::endl;
   delete pedal_thread;
   pedal_thread = NULL;
@@ -398,6 +400,10 @@ bool MyWindow::time_in_title(int x) {
 
 
 void MyWindow::all_the_pedal_things(const int x) {
+  // TODO check if this is needed anymore
 
+}
 
+bool MyWindow::pedal_stop() {
+  return this->pedal_stop_condition;
 }
